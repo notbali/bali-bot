@@ -6,7 +6,13 @@ from discord.ext import commands
 
 import db
 from services.riot import RiotError, format_league_entry, league_rank_summary, league_sort_key
-from services.valorant import HenrikError, fetch_valorant_mmr, format_valorant_rank, valorant_sort_key
+from services.valorant import (
+    HenrikError,
+    TrackerGGError,
+    fetch_valorant_mmr,
+    format_valorant_rank,
+    valorant_sort_key,
+)
 
 
 async def _display_name(client: discord.Client, guild: discord.Guild, user_id: int) -> str:
@@ -61,7 +67,7 @@ class LeaderboardCog(commands.Cog):
                         )
                         key = valorant_sort_key(payload)
                         label = format_valorant_rank(payload)
-                    except HenrikError:
+                    except (HenrikError, TrackerGGError):
                         key = -1
                         label = "API error / private"
                     name = await _display_name(self.bot, guild, row["user_id"])

@@ -4,11 +4,45 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DISCORD_TOKEN = os.getenv("DISCORD_TOKEN", "")
+
+def _normalize_discord_token(raw: str | None) -> str:
+    s = (raw or "").strip()
+    if len(s) >= 2 and s[0] == s[-1] and s[0] in "\"'":
+        s = s[1:-1].strip()
+    if s.startswith("\ufeff"):
+        s = s.lstrip("\ufeff").strip()
+    return s
+
+
+DISCORD_TOKEN = _normalize_discord_token(os.getenv("DISCORD_TOKEN"))
+
+# Requires "Server Members Intent" on the Bot tab + DISCORD_ENABLE_MEMBERS_INTENT=1
+ENABLE_MEMBERS_INTENT = os.getenv("DISCORD_ENABLE_MEMBERS_INTENT", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
+# Requires "Message Content Intent" on the Bot tab + DISCORD_ENABLE_MESSAGE_CONTENT_INTENT=1
+ENABLE_MESSAGE_CONTENT_INTENT = os.getenv(
+    "DISCORD_ENABLE_MESSAGE_CONTENT_INTENT", ""
+).strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
 RIOT_API_KEY = os.getenv("RIOT_API_KEY", "")
 HENRIK_API_KEY = os.getenv("HENRIK_API_KEY", "")
+TRACKER_GG_API_KEY = os.getenv("TRACKER_GG_API_KEY", "").strip()
+
+# Valorant rank source: auto (Tracker if TRACKER_GG_API_KEY else Henrik), tracker, henrik
+VALORANT_RANK_PROVIDER = os.getenv("VALORANT_RANK_PROVIDER", "auto").strip().lower()
 
 HENRIK_BASE = "https://api.henrikdev.xyz"
+TRACKER_GG_API_BASE = "https://public-api.tracker.gg/api/v2"
 
 # Riot account routing (where account-v1 lives)
 ACCOUNT_REGION = {

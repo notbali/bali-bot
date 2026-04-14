@@ -62,21 +62,24 @@ async def fetch_summoner_by_puuid(
         return await resp.json()
 
 
-async def fetch_league_entries(
+async def fetch_league_entries_by_puuid(
     session: aiohttp.ClientSession,
     platform: str,
-    encrypted_summoner_id: str,
+    puuid: str,
 ) -> list[dict[str, Any]]:
     ph = platform.lower()
     host = LOL_PLATFORM_HOSTS.get(ph)
     if not host:
         raise RiotError(0, f"Unknown League platform `{platform}`.")
-    url = f"https://{host}/lol/league/v4/entries/by-summoner/{encrypted_summoner_id}"
+    url = f"https://{host}/lol/league/v4/entries/by-puuid/{puuid}"
     async with session.get(url, headers=_headers()) as resp:
+        if resp.status == 404:
+            return []
         if resp.status != 200:
             text = await resp.text()
             raise RiotError(resp.status, text or resp.reason)
-        return await resp.json()
+        data = await resp.json()
+        return data if isinstance(data, list) else []
 
 
 async def league_rank_summary(
@@ -87,13 +90,18 @@ async def league_rank_summary(
 ) -> dict[str, Any]:
     acc = await fetch_account_by_riot_id(session, game_name, tag_line, platform)
     puuid = acc["puuid"]
-    summ = await fetch_summoner_by_puuid(session, platform, puuid)
-    entries = await fetch_league_entries(session, platform, summ["id"])
+    entries = await fetch_league_entries_by_puuid(session, platform, puuid)
     solo = next((e for e in entries if e.get("queueType") == "RANKED_SOLO_5x5"), None)
     flex = next((e for e in entries if e.get("queueType") == "RANKED_FLEX_SR"), None)
+    summoner_level: int | None = None
+    try:
+        summ = await fetch_summoner_by_puuid(session, platform, puuid)
+        summoner_level = summ.get("summonerLevel")
+    except RiotError:
+        pass
     return {
         "puuid": puuid,
-        "summoner_level": summ.get("summonerLevel"),
+        "summoner_level": summoner_level,
         "solo": solo,
         "flex": flex,
     }

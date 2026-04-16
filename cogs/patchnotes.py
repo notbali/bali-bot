@@ -6,10 +6,10 @@ import db
 from services.patchnotes import PatchNotesError, fetch_latest_patchnote
 
 
-PATCH_GAMES = (
+PATCH_GAMES = [
     app_commands.Choice(name="League of Legends", value="league"),
     app_commands.Choice(name="Valorant", value="valorant"),
-)
+]
 
 
 def _default_patchnotes_url(game: str) -> str:

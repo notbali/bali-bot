@@ -3,7 +3,11 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 import db
-from services.patchnotes import PatchNotesError, fetch_latest_patchnote
+from services.patchnotes import (
+    PatchNotesError,
+    fetch_latest_patchnote,
+    fetch_page_title,
+)
 
 
 PATCH_GAMES = [
@@ -20,6 +24,28 @@ def _default_patchnotes_url(game: str) -> str:
 
 def _embed_color(game: str) -> int:
     return 0xC89B3C if game == "league" else 0xFD4556
+
+
+def _game_label(game: str) -> str:
+    return "League of Legends" if game == "league" else "Valorant"
+
+
+def _build_patch_embed(
+    *,
+    game: str,
+    target_url: str,
+    patch_title: str,
+    footer: str | None,
+) -> discord.Embed:
+    title = patch_title or f"{_game_label(game)} patch notes"
+    embed = discord.Embed(
+        title=title,
+        url=target_url,
+        color=_embed_color(game),
+    )
+    if footer:
+        embed.set_footer(text=footer)
+    return embed
 
 
 class PatchNotesCog(commands.Cog):
@@ -65,11 +91,10 @@ class PatchNotesCog(commands.Cog):
             ephemeral=True,
         )
 
-    @patchnotes.command(name="post", description="Post patch notes to configured channel")
+    @patchnotes.command(name="post", description="Post latest patch notes to configured channel")
     @app_commands.describe(
         game="Which game",
-        title="Patch title, e.g. 14.8 Notes",
-        url="Patch notes URL (optional)",
+        url="Specific patch URL (optional; defaults to latest from Riot)",
     )
     @app_commands.choices(game=PATCH_GAMES)
     @app_commands.default_permissions(manage_guild=True)
@@ -77,7 +102,6 @@ class PatchNotesCog(commands.Cog):
         self,
         interaction: discord.Interaction,
         game: app_commands.Choice[str],
-        title: str,
         url: str | None = None,
     ):
         assert interaction.guild
@@ -98,16 +122,36 @@ class PatchNotesCog(commands.Cog):
             )
             return
 
-        target_url = (url or "").strip() or _default_patchnotes_url(game.value)
-        embed = discord.Embed(
-            title=f"{game.name} Patch Notes",
-            description=f"**{title.strip()}**\n{target_url}",
-            color=_embed_color(game.value),
+        target_url = (url or "").strip()
+        patch_title = ""
+
+        session = self.bot.http_session
+        if target_url:
+            if session is not None:
+                try:
+                    patch_title = await fetch_page_title(session, target_url)
+                except Exception:
+                    pass
+        elif session is not None:
+            try:
+                target_url, patch_title = await fetch_latest_patchnote(session, game.value)
+            except PatchNotesError:
+                target_url = _default_patchnotes_url(game.value)
+            except Exception:
+                target_url = _default_patchnotes_url(game.value)
+        else:
+            target_url = _default_patchnotes_url(game.value)
+
+        embed = _build_patch_embed(
+            game=game.value,
+            target_url=target_url,
+            patch_title=patch_title,
+            footer=f"Posted by {interaction.user.display_name}",
         )
-        embed.set_footer(text=f"Posted by {interaction.user.display_name}")
 
         try:
-            await channel.send(embed=embed)
+            # Bare URL in content enables Discord's native link preview (Open Graph).
+            await channel.send(content=target_url, embed=embed)
         except discord.Forbidden:
             await interaction.response.send_message(
                 f"I can't send messages in {channel.mention}. Check channel permissions.",
@@ -157,15 +201,15 @@ class PatchNotesCog(commands.Cog):
             if not isinstance(channel, discord.TextChannel):
                 continue
 
-            embed = discord.Embed(
-                title=f"{'League of Legends' if game == 'league' else 'Valorant'} Patch Notes",
-                description=f"**{title or 'New patch notes available'}**\n{latest_url}",
-                color=_embed_color(game),
+            embed = _build_patch_embed(
+                game=game,
+                target_url=latest_url,
+                patch_title=title,
+                footer="Auto-posted by bali-bot",
             )
-            embed.set_footer(text="Auto-posted by bali-bot")
 
             try:
-                await channel.send(embed=embed)
+                await channel.send(content=latest_url, embed=embed)
             except discord.Forbidden:
                 continue
             except discord.HTTPException:

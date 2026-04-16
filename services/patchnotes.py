@@ -25,19 +25,29 @@ def _extract_title(html: str) -> str:
 
 def _extract_latest_article_url(html: str, game: str) -> str | None:
     domain = "leagueoflegends.com" if game == "league" else "playvalorant.com"
-    pattern = rf"https://(?:www\.)?{re.escape(domain)}/en-us/news/game-updates/[a-z0-9-]+"
-    matches = re.findall(pattern, html, flags=re.IGNORECASE)
+    # Riot tag pages frequently use relative links in HTML; support both absolute and relative.
+    abs_pattern = rf"https://(?:www\.)?{re.escape(domain)}/en-us/news/game-updates/[a-z0-9-]+"
+    rel_pattern = r"/en-us/news/game-updates/[a-z0-9-]+"
+
+    matches: list[str] = []
+    matches.extend(re.findall(abs_pattern, html, flags=re.IGNORECASE))
+    matches.extend(re.findall(rel_pattern, html, flags=re.IGNORECASE))
     if not matches:
         return None
-    # Keep page order and de-duplicate.
+
+    # Keep page order and de-duplicate (case-insensitive).
     seen: set[str] = set()
     ordered: list[str] = []
     for m in matches:
-        u = m.lower()
-        if u in seen:
+        url = m
+        if url.startswith("/"):
+            url = f"https://www.{domain}{url}"
+        k = url.lower()
+        if k in seen:
             continue
-        seen.add(u)
-        ordered.append(m)
+        seen.add(k)
+        ordered.append(url)
+
     return ordered[0] if ordered else None
 
 
@@ -71,3 +81,11 @@ async def fetch_latest_patchnote(
             title = _clean_title(_extract_title(article_html))
 
     return latest_url, title
+
+
+async def fetch_page_title(session: aiohttp.ClientSession, url: str) -> str:
+    async with session.get(url) as resp:
+        html = await resp.text()
+        if resp.status != 200:
+            return ""
+        return _clean_title(_extract_title(html))

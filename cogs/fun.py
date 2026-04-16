@@ -57,3 +57,7 @@ class FunCog(commands.Cog):
                 except discord.HTTPException:
                     await message.add_reaction("😔")
                 return
+
+
+async def setup(bot: commands.Bot) -> None:
+    await bot.add_cog(FunCog(bot))

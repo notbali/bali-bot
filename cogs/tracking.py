@@ -3,7 +3,7 @@ from discord import app_commands
 from discord.ext import commands
 
 import db
-from services.riot import RiotError, format_league_entry, league_rank_summary
+from services.league import RiotError, format_league_entry, league_rank_summary
 from services.valorant import HenrikError, TrackerGGError, fetch_valorant_mmr, format_valorant_rank
 
 

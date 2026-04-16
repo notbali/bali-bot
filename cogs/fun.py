@@ -29,11 +29,13 @@ class FunCog(commands.Cog):
 
         # Phrase-based auto replies.
         phrase_replies = (
-            ("shut up momo", "YEAH BRUH SHUT UR MOUTH"),
-            ("rara", "A BAD TAKE FROM RARA AGAIN? TYPICAL"),
             ("chud", "THE BIGGEST CHUD OF ALL"),
             ("twice", "TWICE? IS THAT TWICE?? THE KPOP GROUP? I LOVE TWICE!!!"),
-            ("https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&=", "https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&=")
+            ("hewwo balibot", "https://tenor.com/view/chiikawa-dance-happy-u-uwa-wa-uwa-gif-12488488499303603624"),
+            ("https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&=", "https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&="),
+            ("league", "https://tenor.com/view/league-of-legends-patrick-bateman-lol-gif-26192310"),
+            ("valorant", "https://tenor.com/view/valorant-reyna-gif-24736433"),
+
         )
         for phrase, reply in phrase_replies:
             if phrase in content:

@@ -41,6 +41,26 @@ def init_db() -> None:
             )
             """
         )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS patchnote_channels (
+                guild_id INTEGER NOT NULL,
+                game TEXT NOT NULL,
+                channel_id INTEGER NOT NULL,
+                PRIMARY KEY (guild_id, game)
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS patchnote_state (
+                guild_id INTEGER NOT NULL,
+                game TEXT NOT NULL,
+                last_url TEXT,
+                PRIMARY KEY (guild_id, game)
+            )
+            """
+        )
 
 
 def _row_to_dict(row: sqlite3.Row | None) -> dict[str, Any]:
@@ -129,6 +149,70 @@ def all_links_for_guild(guild_id: int) -> list[dict[str, Any]]:
     with get_conn() as conn:
         cur = conn.execute("SELECT * FROM links WHERE guild_id = ?", (guild_id,))
         return [_row_to_dict(r) for r in cur.fetchall()]
+
+
+def set_patchnote_channel(guild_id: int, game: str, channel_id: int) -> None:
+    with get_conn() as conn:
+        conn.execute(
+            """
+            INSERT INTO patchnote_channels (guild_id, game, channel_id)
+            VALUES (?, ?, ?)
+            ON CONFLICT(guild_id, game) DO UPDATE SET
+                channel_id = excluded.channel_id
+            """,
+            (guild_id, game, channel_id),
+        )
+
+
+def get_patchnote_channel(guild_id: int, game: str) -> int | None:
+    with get_conn() as conn:
+        cur = conn.execute(
+            "SELECT channel_id FROM patchnote_channels WHERE guild_id = ? AND game = ?",
+            (guild_id, game),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        return int(row["channel_id"])
+
+
+def clear_patchnote_channel(guild_id: int, game: str) -> None:
+    with get_conn() as conn:
+        conn.execute(
+            "DELETE FROM patchnote_channels WHERE guild_id = ? AND game = ?",
+            (guild_id, game),
+        )
+
+
+def all_patchnote_channels() -> list[dict[str, Any]]:
+    with get_conn() as conn:
+        cur = conn.execute("SELECT guild_id, game, channel_id FROM patchnote_channels")
+        return [_row_to_dict(r) for r in cur.fetchall()]
+
+
+def get_patchnote_last_url(guild_id: int, game: str) -> str | None:
+    with get_conn() as conn:
+        cur = conn.execute(
+            "SELECT last_url FROM patchnote_state WHERE guild_id = ? AND game = ?",
+            (guild_id, game),
+        )
+        row = cur.fetchone()
+        if not row:
+            return None
+        return row["last_url"]
+
+
+def set_patchnote_last_url(guild_id: int, game: str, url: str) -> None:
+    with get_conn() as conn:
+        conn.execute(
+            """
+            INSERT INTO patchnote_state (guild_id, game, last_url)
+            VALUES (?, ?, ?)
+            ON CONFLICT(guild_id, game) DO UPDATE SET
+                last_url = excluded.last_url
+            """,
+            (guild_id, game, url),
+        )
 
 
 def parse_riot_id(s: str) -> tuple[str, str] | None:

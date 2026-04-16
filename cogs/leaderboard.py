@@ -80,7 +80,7 @@ class LeaderboardCog(commands.Cog):
                 medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"`{i}.`")
                 lines.append(f"{medal} **{disp}** — {label}")
             embed = discord.Embed(
-                title="Valorant leaderboard (linked accounts)",
+                title="VALORANT leaderboard (linked accounts)",
                 description="\n".join(lines) or "Empty.",
                 color=0xFD4556,
             )
@@ -122,7 +122,7 @@ class LeaderboardCog(commands.Cog):
             medal = {1: "🥇", 2: "🥈", 3: "🥉"}.get(i, f"`{i}.`")
             lines.append(f"{medal} **{disp}** — {label}")
         embed = discord.Embed(
-            title="League Solo/Duo leaderboard (linked accounts)",
+            title="League Solo/Duo leaderboard",
             description="\n".join(lines) or "Empty.",
             color=0xC89B3C,
         )

@@ -34,6 +34,7 @@ class BaliBot(commands.Bot):
         await self.load_extension("cogs.tracking")
         await self.load_extension("cogs.leaderboard")
         await self.load_extension("cogs.fun")
+        await self.load_extension("cogs.patchnotes")
         await self.tree.sync()
         log.info("Slash commands synced.")
 

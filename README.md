@@ -12,6 +12,7 @@ Discord bot for:
 - `/league link`, `/league rank`, `/league unlink`
 - `/leaderboard` (Valorant + League)
 - Fun commands: `/say`, `/clap`, `/mock`
+- Patch notes: `/patchnotes set-channel`, `/patchnotes post`, `/patchnotes clear-channel` (auto-post checks hourly)
 - Phrase triggers in chat (for example `chud`, `shut up momo`, `rara`)
 
 ## Local Run

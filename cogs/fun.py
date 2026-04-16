@@ -32,7 +32,7 @@ class FunCog(commands.Cog):
             ("shut up momo", "YEAH BRUH SHUT UR MOUTH"),
             ("rara", "A BAD TAKE FROM RARA AGAIN? TYPICAL"),
             ("chud", "THE BIGGEST CHUD OF ALL"),
-            ("twice", "TWICE? IS THAT TWICE?? THE KPOP GROUP? I LOVE TWICE!!!")
+            ("twice", "TWICE? IS THAT TWICE?? THE KPOP GROUP? I LOVE TWICE!!!"),
             ("https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&=", "https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&=")
         )
         for phrase, reply in phrase_replies:

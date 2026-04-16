@@ -3,11 +3,7 @@ from discord import app_commands
 from discord.ext import commands, tasks
 
 import db
-from services.patchnotes import (
-    PatchNotesError,
-    fetch_latest_patchnote,
-    fetch_page_title,
-)
+from services.patchnotes import PatchNotesError, fetch_latest_patchnote
 
 
 PATCH_GAMES = [
@@ -20,32 +16,6 @@ def _default_patchnotes_url(game: str) -> str:
     if game == "league":
         return "https://www.leagueoflegends.com/en-us/news/tags/patch-notes/"
     return "https://playvalorant.com/en-us/news/tags/patch-notes/"
-
-
-def _embed_color(game: str) -> int:
-    return 0xC89B3C if game == "league" else 0xFD4556
-
-
-def _game_label(game: str) -> str:
-    return "League of Legends" if game == "league" else "Valorant"
-
-
-def _build_patch_embed(
-    *,
-    game: str,
-    target_url: str,
-    patch_title: str,
-    footer: str | None,
-) -> discord.Embed:
-    title = patch_title or f"{_game_label(game)} patch notes"
-    embed = discord.Embed(
-        title=title,
-        url=target_url,
-        color=_embed_color(game),
-    )
-    if footer:
-        embed.set_footer(text=footer)
-    return embed
 
 
 class PatchNotesCog(commands.Cog):
@@ -123,35 +93,21 @@ class PatchNotesCog(commands.Cog):
             return
 
         target_url = (url or "").strip()
-        patch_title = ""
-
         session = self.bot.http_session
-        if target_url:
+        if not target_url:
             if session is not None:
                 try:
-                    patch_title = await fetch_page_title(session, target_url)
+                    target_url, _ = await fetch_latest_patchnote(session, game.value)
+                except PatchNotesError:
+                    target_url = _default_patchnotes_url(game.value)
                 except Exception:
-                    pass
-        elif session is not None:
-            try:
-                target_url, patch_title = await fetch_latest_patchnote(session, game.value)
-            except PatchNotesError:
+                    target_url = _default_patchnotes_url(game.value)
+            else:
                 target_url = _default_patchnotes_url(game.value)
-            except Exception:
-                target_url = _default_patchnotes_url(game.value)
-        else:
-            target_url = _default_patchnotes_url(game.value)
-
-        embed = _build_patch_embed(
-            game=game.value,
-            target_url=target_url,
-            patch_title=patch_title,
-            footer=f"Posted by {interaction.user.display_name}",
-        )
 
         try:
-            # Bare URL in content enables Discord's native link preview (Open Graph).
-            await channel.send(content=target_url, embed=embed)
+            # URL-only: Discord unfurls Open Graph (title, description, thumbnail, large image).
+            await channel.send(content=target_url)
         except discord.Forbidden:
             await interaction.response.send_message(
                 f"I can't send messages in {channel.mention}. Check channel permissions.",
@@ -188,7 +144,7 @@ class PatchNotesCog(commands.Cog):
             if not latest:
                 continue
 
-            latest_url, title = latest
+            latest_url, _title = latest
             if not latest_url:
                 continue
             if db.get_patchnote_last_url(guild_id, game) == latest_url:
@@ -201,15 +157,8 @@ class PatchNotesCog(commands.Cog):
             if not isinstance(channel, discord.TextChannel):
                 continue
 
-            embed = _build_patch_embed(
-                game=game,
-                target_url=latest_url,
-                patch_title=title,
-                footer="Auto-posted by bali-bot",
-            )
-
             try:
-                await channel.send(content=latest_url, embed=embed)
+                await channel.send(content=latest_url)
             except discord.Forbidden:
                 continue
             except discord.HTTPException:

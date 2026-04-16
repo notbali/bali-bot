@@ -81,11 +81,3 @@ async def fetch_latest_patchnote(
             title = _clean_title(_extract_title(article_html))
 
     return latest_url, title
-
-
-async def fetch_page_title(session: aiohttp.ClientSession, url: str) -> str:
-    async with session.get(url) as resp:
-        html = await resp.text()
-        if resp.status != 200:
-            return ""
-        return _clean_title(_extract_title(html))

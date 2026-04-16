@@ -33,6 +33,7 @@ class FunCog(commands.Cog):
             ("rara", "A BAD TAKE FROM RARA AGAIN? TYPICAL"),
             ("chud", "THE BIGGEST CHUD OF ALL"),
             ("twice", "TWICE? IS THAT TWICE?? THE KPOP GROUP? I LOVE TWICE!!!")
+            ("https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&=", "https://media.discordapp.net/attachments/855510265114001489/1383903024770191380/attachment.gif?ex=69e1ec60&is=69e09ae0&hm=95ccf8eac7dd47e6c2e5166d325464382e6dff84c931b899f87bf1bfa2d1fdc5&=")
         )
         for phrase, reply in phrase_replies:
             if phrase in content:
@@ -56,29 +57,3 @@ class FunCog(commands.Cog):
                 except discord.HTTPException:
                     await message.add_reaction("😔")
                 return
-
-    @app_commands.command(name="say", description="The bot repeats your text in this channel")
-    @app_commands.describe(text="What to say")
-    async def say_cmd(self, interaction: discord.Interaction, text: str):
-        if len(text) > 1900:
-            await interaction.response.send_message("Too long (max ~1900 chars).", ephemeral=True)
-            return
-        await interaction.response.send_message("Sent.", ephemeral=True)
-        await interaction.channel.send(text)
-
-    @app_commands.command(name="clap", description="Add clap between every word")
-    async def clap_cmd(self, interaction: discord.Interaction, text: str):
-        parts = text.split()
-        if not parts:
-            await interaction.response.send_message("Give me words.", ephemeral=True)
-            return
-        out = " 👏 ".join(parts)
-        await interaction.response.send_message(out[:2000])
-
-    @app_commands.command(name="mock", description="sPoNgEbOb case")
-    async def mock_cmd(self, interaction: discord.Interaction, text: str):
-        await interaction.response.send_message(_mock_text(text)[:2000])
-
-
-async def setup(bot: commands.Bot):
-    await bot.add_cog(FunCog(bot))

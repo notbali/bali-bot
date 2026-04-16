@@ -35,7 +35,13 @@ class BaliBot(commands.Bot):
         await self.load_extension("cogs.leaderboard")
         await self.load_extension("cogs.fun")
         await self.load_extension("cogs.patchnotes")
+        # Global sync can take time to propagate; sync per guild for faster visibility.
         await self.tree.sync()
+        for guild in self.guilds:
+            try:
+                await self.tree.sync(guild=guild)
+            except discord.HTTPException:
+                log.warning("Failed syncing commands for guild %s", guild.id)
         log.info("Slash commands synced.")
 
     async def close(self) -> None:

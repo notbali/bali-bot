@@ -13,6 +13,7 @@ Discord bot for:
 - `/leaderboard` (Valorant + League)
 - Fun commands: `/say`, `/clap`, `/mock`
 - Patch notes: `/patchnotes set-channel`, `/patchnotes post` (optional URL; Discord native link preview), `/patchnotes clear-channel` (auto-post hourly)
+- Premier pings from [GO//NEXT](https://github.com/notbali/gonext): `/premier set-channel`, `/premier clear-channel`, `/premier check` (polls every 5 minutes; @s teammates on match days, 30 minutes before a match, and Sunday evenings for unset availability)
 - Phrase triggers in chat (for example `chud`, `shut up momo`, `rara`)
 
 ## Local Run
@@ -38,6 +39,14 @@ python bot.py
 - `VALORANT_RANK_PROVIDER` (`auto`, `henrik`, `tracker`)
 - `DISCORD_ENABLE_MESSAGE_CONTENT_INTENT` (`1` to enable phrase listener)
 - `DISCORD_ENABLE_MEMBERS_INTENT` (`1` if Server Members Intent is enabled in Discord portal)
+- `GONEXT_URL` / `GONEXT_BOT_SECRET` (Premier pings; the secret matches GO//NEXT's `BOT_API_SECRET`)
+
+## Tests
+
+```bash
+pip install -r requirements-dev.txt
+python -m pytest
+```
 
 ## Discord Developer Portal Setup
 

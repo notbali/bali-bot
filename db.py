@@ -53,6 +53,24 @@ def init_db() -> None:
         )
         conn.execute(
             """
+            CREATE TABLE IF NOT EXISTS premier_channels (
+                guild_id INTEGER PRIMARY KEY,
+                channel_id INTEGER NOT NULL
+            )
+            """
+        )
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS premier_posted (
+                guild_id INTEGER NOT NULL,
+                ping_key TEXT NOT NULL,
+                posted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (guild_id, ping_key)
+            )
+            """
+        )
+        conn.execute(
+            """
             CREATE TABLE IF NOT EXISTS patchnote_state (
                 guild_id INTEGER NOT NULL,
                 game TEXT NOT NULL,
@@ -212,6 +230,52 @@ def set_patchnote_last_url(guild_id: int, game: str, url: str) -> None:
                 last_url = excluded.last_url
             """,
             (guild_id, game, url),
+        )
+
+
+def set_premier_channel(guild_id: int, channel_id: int) -> None:
+    with get_conn() as conn:
+        conn.execute(
+            """
+            INSERT INTO premier_channels (guild_id, channel_id) VALUES (?, ?)
+            ON CONFLICT(guild_id) DO UPDATE SET channel_id = excluded.channel_id
+            """,
+            (guild_id, channel_id),
+        )
+
+
+def get_premier_channel(guild_id: int) -> int | None:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT channel_id FROM premier_channels WHERE guild_id = ?", (guild_id,)
+        ).fetchone()
+        return int(row["channel_id"]) if row else None
+
+
+def clear_premier_channel(guild_id: int) -> None:
+    with get_conn() as conn:
+        conn.execute("DELETE FROM premier_channels WHERE guild_id = ?", (guild_id,))
+
+
+def all_premier_channels() -> list[dict[str, Any]]:
+    with get_conn() as conn:
+        return [_row_to_dict(r) for r in conn.execute("SELECT * FROM premier_channels").fetchall()]
+
+
+def premier_ping_posted(guild_id: int, ping_key: str) -> bool:
+    with get_conn() as conn:
+        row = conn.execute(
+            "SELECT 1 FROM premier_posted WHERE guild_id = ? AND ping_key = ?",
+            (guild_id, ping_key),
+        ).fetchone()
+        return row is not None
+
+
+def mark_premier_ping_posted(guild_id: int, ping_key: str) -> None:
+    with get_conn() as conn:
+        conn.execute(
+            "INSERT OR IGNORE INTO premier_posted (guild_id, ping_key) VALUES (?, ?)",
+            (guild_id, ping_key),
         )
 
 

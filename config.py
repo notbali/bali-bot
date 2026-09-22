@@ -34,6 +34,10 @@ ENABLE_MESSAGE_CONTENT_INTENT = os.getenv(
     "on",
 )
 
+# GO//NEXT (Premier scheduling site) — the bot polls it for availability pings.
+GONEXT_URL = os.getenv("GONEXT_URL", "").strip()
+GONEXT_BOT_SECRET = os.getenv("GONEXT_BOT_SECRET", "").strip()
+
 RIOT_API_KEY = os.getenv("RIOT_API_KEY", "")
 HENRIK_API_KEY = os.getenv("HENRIK_API_KEY", "")
 TRACKER_GG_API_KEY = os.getenv("TRACKER_GG_API_KEY", "").strip()

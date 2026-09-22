@@ -35,6 +35,7 @@ class BaliBot(commands.Bot):
         await self.load_extension("cogs.leaderboard")
         await self.load_extension("cogs.fun")
         await self.load_extension("cogs.patchnotes")
+        await self.load_extension("cogs.premier")
         # Global sync can take time to propagate; sync per guild for faster visibility.
         await self.tree.sync()
         for guild in self.guilds:
